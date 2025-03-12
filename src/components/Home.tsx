@@ -1,41 +1,20 @@
 import React from 'react';
-import styled, { keyframes } from 'styled-components';
-
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
+import styled from 'styled-components';
 
 const HomeContainer = styled.div`
-  min-height: calc(100vh - 80px);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 2rem;
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
 `;
 
-const BackgroundImage = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url('https://images.unsplash.com/photo-1561758033-d89a9ad46330?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+const HeroSection = styled.section`
+  height: 80vh;
+  background-image: url('https://images.unsplash.com/photo-1561758033-d89a9ad46330?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
   background-size: cover;
   background-position: center;
-  background-attachment: fixed;
-  filter: brightness(0.4);
-  z-index: -1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   
   &::before {
     content: '';
@@ -44,44 +23,34 @@ const BackgroundImage = styled.div`
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(
-      135deg,
-      rgba(0, 0, 0, 0.7),
-      rgba(0, 0, 0, 0.5)
-    );
+    background-color: rgba(0, 0, 0, 0.5);
   }
 `;
 
-const Content = styled.div`
+const HeroContent = styled.div`
+  text-align: center;
+  color: white;
   position: relative;
   z-index: 1;
   max-width: 800px;
-  margin: 0 auto;
-  animation: ${fadeIn} 1s ease-out;
+  padding: 0 2rem;
 `;
 
 const Title = styled.h1`
-  font-size: 4.5rem;
-  color: white;
+  font-size: 3rem;
   margin-bottom: 1rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  font-weight: 800;
-  letter-spacing: -1px;
   
   @media (max-width: 768px) {
-    font-size: 2.8rem;
+    font-size: 2rem;
   }
 `;
 
 const Subtitle = styled.p`
-  font-size: 1.8rem;
-  color: white;
-  margin-bottom: 2.5rem;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-  line-height: 1.4;
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
   
   @media (max-width: 768px) {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
   }
 `;
 
@@ -89,117 +58,43 @@ const CTAButton = styled.button`
   background-color: ${({ theme }) => theme.primary};
   color: white;
   border: none;
-  padding: 1.2rem 3rem;
-  font-size: 1.3rem;
-  border-radius: 50px;
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-
-  &:hover {
-    transform: translateY(-3px);
-    background-color: ${({ theme }) => theme.secondary};
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-  }
-
-  @media (max-width: 768px) {
-    padding: 1rem 2.5rem;
-    font-size: 1.1rem;
-  }
-`;
-
-const OverlayText = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 12rem;
-  color: rgba(255, 255, 255, 0.05);
-  font-weight: 900;
-  white-space: nowrap;
-  pointer-events: none;
-  letter-spacing: -5px;
+  transition: background-color 0.3s, transform 0.2s;
   
-  @media (max-width: 768px) {
-    font-size: 5rem;
-    letter-spacing: -2px;
+  &:hover {
+    background-color: ${({ theme }) => theme.secondary};
+    transform: translateY(-3px);
   }
-`;
-
-const Features = styled.div`
-  display: flex;
-  gap: 2rem;
-  margin-top: 3rem;
-  justify-content: center;
-  flex-wrap: wrap;
-`;
-
-const Feature = styled.div`
-  color: white;
-  text-align: center;
-  animation: ${fadeIn} 1s ease-out;
-  animation-delay: 0.3s;
-  opacity: 0;
-  animation-fill-mode: forwards;
-`;
-
-const FeatureIcon = styled.div`
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-`;
-
-const FeatureText = styled.p`
-  font-size: 1.1rem;
-  opacity: 0.9;
+  
+  &:active {
+    transform: translateY(1px);
+  }
 `;
 
 interface HomeProps {
-  onNavigate: (page: string) => void;
   translations: {
-    menu: {
-      title: string;
-    };
-    home: {
-      welcome: string;
-      subtitle: string;
-      features: {
-        fresh: string;
-        delivery: string;
-        quality: string;
-      };
-    };
+    title: string;
+    subtitle: string;
+    cta: string;
   };
+  onNavigateToMenu: () => void;
 }
 
-const Home: React.FC<HomeProps> = ({ onNavigate, translations }) => {
+const Home: React.FC<HomeProps> = ({ translations, onNavigateToMenu }) => {
   return (
     <HomeContainer>
-      <BackgroundImage />
-      <OverlayText>Y0's FAST FOODS</OverlayText>
-      <Content>
-        <Title>{translations.home.welcome}</Title>
-        <Subtitle>{translations.home.subtitle}</Subtitle>
-        <CTAButton onClick={() => onNavigate('menu')}>
-          {translations.menu.title}
-        </CTAButton>
-        <Features>
-          <Feature>
-            <FeatureIcon>🍟</FeatureIcon>
-            <FeatureText>{translations.home.features.fresh}</FeatureText>
-          </Feature>
-          <Feature>
-            <FeatureIcon>🚚</FeatureIcon>
-            <FeatureText>{translations.home.features.delivery}</FeatureText>
-          </Feature>
-          <Feature>
-            <FeatureIcon>⭐</FeatureIcon>
-            <FeatureText>{translations.home.features.quality}</FeatureText>
-          </Feature>
-        </Features>
-      </Content>
+      <HeroSection>
+        <HeroContent>
+          <Title>{translations.title}</Title>
+          <Subtitle>{translations.subtitle}</Subtitle>
+          <CTAButton onClick={onNavigateToMenu}>
+            {translations.cta}
+          </CTAButton>
+        </HeroContent>
+      </HeroSection>
     </HomeContainer>
   );
 };

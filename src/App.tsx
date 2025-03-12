@@ -1,71 +1,101 @@
-import React, { useState } from 'react';
-import styled, { ThemeProvider } from 'styled-components';
-import { lightTheme, darkTheme } from './styles/theme';
+import React, { useState, useEffect } from 'react';
+import { ThemeProvider } from './context/ThemeContext';
+import { CartProvider } from './context/CartContext';
 import Header from './components/Header';
 import Home from './components/Home';
 import Menu from './components/Menu';
-import Cart from './components/Cart';
 import Contact from './components/Contact';
-import { translations, LanguageCode } from './i18n/translations';
-import { CartProvider } from './context/CartContext';
+import Footer from './components/Footer';
+import translations, { LanguageCode } from './i18n/translations';
+import styled from 'styled-components';
+import { useTheme } from './context/ThemeContext';
+import Feedback from './components/Feedback';
+import CartSidebar from './components/CartSidebar';
 
 const AppContainer = styled.div`
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background-color: ${({ theme }) => theme.background};
   color: ${({ theme }) => theme.text};
-  transition: all 0.3s ease;
 `;
 
-interface MainContentProps {
-  $isHome: boolean;
-}
-
-const MainContent = styled.main<MainContentProps>`
-  margin: 0 auto;
-  padding: ${({ $isHome }) => $isHome ? '0' : '20px'};
-  width: ${({ $isHome }) => $isHome ? '100%' : 'auto'};
-  max-width: ${({ $isHome }) => $isHome ? 'none' : '1200px'};
+const MainContent = styled.main<{ isHomePage: boolean }>`
+  flex: 1;
+  padding: ${({ isHomePage }) => isHomePage ? '0' : '2rem'};
+  max-width: ${({ isHomePage }) => isHomePage ? '100%' : '1200px'};
+  margin: ${({ isHomePage }) => isHomePage ? '0' : '0 auto'};
+  width: 100%;
 `;
 
-function App() {
-  const [isDarkTheme, setIsDarkTheme] = useState(false);
-  const [language, setLanguage] = useState<LanguageCode>('en');
+const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<'home' | 'menu' | 'contact'>('home');
+  const [language, setLanguage] = useState<LanguageCode>('en');
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  
+  const currentTranslations = translations[language];
+  
+  const handleNavigate = (page: 'home' | 'menu' | 'contact') => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  };
+  
+  const navigateToMenu = () => {
+    handleNavigate('menu');
+  };
 
-  const toggleTheme = () => setIsDarkTheme(!isDarkTheme);
-
+  const toggleCart = () => {
+    setIsCartOpen(!isCartOpen);
+  };
+  
+  // Apply theme to body element
+  useEffect(() => {
+    document.body.style.backgroundColor = theme === 'dark' ? '#212529' : '#f8f9fa';
+    document.body.style.color = theme === 'dark' ? '#f8f9fa' : '#212529';
+  }, [theme]);
+  
   return (
-    <ThemeProvider theme={isDarkTheme ? darkTheme : lightTheme}>
-      <CartProvider>
-        <AppContainer>
-          <Header 
-            toggleTheme={toggleTheme} 
-            setLanguage={setLanguage}
-            isDarkTheme={isDarkTheme}
-            language={language}
-            translations={translations[language]}
-            onNavigate={setCurrentPage}
-            currentPage={currentPage}
-          />
-          <MainContent $isHome={currentPage === 'home'}>
-            {currentPage === 'home' && (
+    <CartProvider>
+      <AppContainer>
+        <Header 
+          toggleTheme={toggleTheme}
+          setLanguage={setLanguage}
+          isDarkTheme={theme === 'dark'}
+          language={language}
+          translations={currentTranslations}
+          onNavigate={handleNavigate}
+          currentPage={currentPage}
+          onCartClick={toggleCart}
+        />
+        
+        <MainContent isHomePage={currentPage === 'home'}>
+          {currentPage === 'home' && (
+            <>
               <Home 
-                onNavigate={setCurrentPage}
-                translations={translations[language]}
+                translations={currentTranslations.home} 
+                onNavigateToMenu={navigateToMenu}
               />
-            )}
-            {currentPage === 'menu' && (
-              <>
-                <Menu translations={translations[language]} />
-                <Cart />
-              </>
-            )}
-            {currentPage === 'contact' && <Contact />}
-          </MainContent>
-        </AppContainer>
-      </CartProvider>
+              <Feedback />
+            </>
+          )}
+          {currentPage === 'menu' && <Menu translations={currentTranslations.menu} />}
+          {currentPage === 'contact' && <Contact translations={currentTranslations.contact} />}
+        </MainContent>
+        
+        <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+        <Footer translations={currentTranslations.footer} />
+      </AppContainer>
+    </CartProvider>
+  );
+};
+
+const AppWithTheme: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <App />
     </ThemeProvider>
   );
-}
+};
 
-export default App;
+export default AppWithTheme;

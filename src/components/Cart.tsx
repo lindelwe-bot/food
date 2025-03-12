@@ -122,6 +122,10 @@ const EmptyCartMessage = styled.p`
   gap: 0.5rem;
 `;
 
+const CartIcon = styled.span`
+  font-size: 1.5rem;
+`;
+
 const RemoveButton = styled.button`
   background: none;
   border: none;
@@ -161,7 +165,7 @@ const Cart: React.FC = () => {
         
         {items.length === 0 ? (
           <EmptyCartMessage>
-            <span style={{ fontSize: '1.5rem' }}>🛒</span>
+            <CartIcon>🛒</CartIcon>
             Your cart is empty
           </EmptyCartMessage>
         ) : (

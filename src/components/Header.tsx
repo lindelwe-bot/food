@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { LanguageCode, languageNames } from '../i18n/translations';
 import { useCart } from '../context/CartContext';
+import { useTheme } from '../context/ThemeContext';
 
 const HeaderContainer = styled.header`
   background-color: ${({ theme }) => theme.headerBg};
@@ -106,7 +107,11 @@ const LanguageDropdown = styled.div<{ isOpen: boolean }>`
   }
 `;
 
-const LanguageOption = styled.button<{ isSelected?: boolean }>`
+interface LanguageOptionProps {
+  isSelected?: boolean;
+}
+
+const LanguageOption = styled.button<LanguageOptionProps>`
   width: 100%;
   padding: 0.75rem 1.5rem;
   border: none;
@@ -160,13 +165,19 @@ const MobileMenu = styled.div<{ isOpen: boolean }>`
   }
 `;
 
-const MobileMenuItem = styled(Button)`
+interface MobileMenuItemProps extends ButtonProps {
+  isSelected?: boolean;
+}
+
+const MobileMenuItem = styled(Button)<MobileMenuItemProps>`
   width: 100%;
   margin-bottom: 1rem;
   text-align: left;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: ${({ theme, isSelected }) => 
+    isSelected ? theme.primary + '20' : (props => props.active ? theme.secondary : theme.primary)};
 `;
 
 const Overlay = styled.div<{ isOpen: boolean }>`
@@ -184,6 +195,207 @@ const Overlay = styled.div<{ isOpen: boolean }>`
   }
 `;
 
+const BookingButton = styled.button`
+  background-color: ${({ theme }) => theme.primary};
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-right: 1rem;
+  
+  &:hover {
+    background-color: ${({ theme }) => theme.secondary};
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background-color: ${({ theme }) => theme.headerBg};
+  border-radius: 12px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+  z-index: 1001;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  
+  /* Adding these styles to ensure modal stays within viewport */
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+`;
+
+const ModalTitle = styled.h2`
+  color: ${({ theme }) => theme.primary};
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  text-align: center;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: ${({ theme }) => theme.text};
+  
+  &:hover {
+    color: ${({ theme }) => theme.primary};
+  }
+`;
+
+const BookingForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const Label = styled.label`
+  color: ${({ theme }) => theme.text};
+  font-weight: bold;
+`;
+
+const Input = styled.input`
+  padding: 0.8rem;
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 4px;
+  background-color: ${({ theme }) => theme.inputBg || theme.background};
+  color: ${({ theme }) => theme.text};
+  
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.primary};
+  }
+`;
+
+const SearchInput = styled.input`
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  background-color: ${({ theme }) => theme.inputBg || theme.background};
+  color: ${({ theme }) => theme.text};
+  
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.primary};
+  }
+`;
+
+const Select = styled.select`
+  padding: 0.8rem;
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 4px;
+  background-color: ${({ theme }) => theme.inputBg || theme.background};
+  color: ${({ theme }) => theme.text};
+  
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.primary};
+  }
+`;
+
+const TextArea = styled.textarea`
+  padding: 0.8rem;
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 4px;
+  background-color: ${({ theme }) => theme.inputBg || theme.background};
+  color: ${({ theme }) => theme.text};
+  min-height: 100px;
+  resize: vertical;
+  
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.primary};
+  }
+`;
+
+const SubmitButton = styled.button`
+  background-color: ${({ theme }) => theme.primary};
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 1rem;
+  
+  &:hover {
+    background-color: ${({ theme }) => theme.secondary};
+  }
+`;
+
+const LanguageList = styled.div`
+  max-height: 300px;
+  overflow-y: auto;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.background};
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.primary};
+    border-radius: 4px;
+  }
+`;
+
+const LanguageCategory = styled.div`
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  color: ${({ theme }) => theme.primary};
+  font-size: 0.9rem;
+  background-color: ${({ theme }) => theme.background}10;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+`;
+
+const CartButton = styled.button`
+  background-color: ${({ theme }) => theme.primary};
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: bold;
+  
+  &:hover {
+    background-color: ${({ theme }) => theme.secondary};
+  }
+`;
+
 interface HeaderProps {
   toggleTheme: () => void;
   setLanguage: (lang: LanguageCode) => void;
@@ -195,9 +407,22 @@ interface HeaderProps {
       theme: string;
       language: string;
     };
+    booking: {
+      title: string;
+      name: string;
+      email: string;
+      phone: string;
+      date: string;
+      time: string;
+      guests: string;
+      specialRequests: string;
+      submit: string;
+      buttonText: string;
+    };
   };
   onNavigate: (page: 'home' | 'menu' | 'contact') => void;
   currentPage: 'home' | 'menu' | 'contact';
+  onCartClick: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -207,13 +432,17 @@ const Header: React.FC<HeaderProps> = ({
   language,
   translations,
   onNavigate,
-  currentPage
+  currentPage,
+  onCartClick
 }) => {
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const languageRef = useRef<HTMLDivElement>(null);
   const { items } = useCart();
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const { theme } = useTheme();
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -239,6 +468,22 @@ const Header: React.FC<HeaderProps> = ({
     setIsMobileMenuOpen(false);
   };
 
+  // Filter languages based on search query
+  const filteredLanguages = Object.entries(languageNames).filter(([_, name]) => 
+    name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Separate Zimbabwe languages from others
+  const zimbabweLanguages = ['en', 'sn', 'nd', 'tn', 'ny', 've', 'ts', 'kck', 'xh'];
+  
+  const filteredZimbabweLanguages = filteredLanguages.filter(([code]) => 
+    zimbabweLanguages.includes(code)
+  );
+  
+  const filteredOtherLanguages = filteredLanguages.filter(([code]) => 
+    !zimbabweLanguages.includes(code)
+  );
+
   return (
     <HeaderContainer>
       <HeaderContent>
@@ -254,7 +499,7 @@ const Header: React.FC<HeaderProps> = ({
             active={currentPage === 'menu'} 
             onClick={() => onNavigate('menu')}
           >
-            Menu {cartItemCount > 0 && <CartCount>{cartItemCount}</CartCount>}
+            Menu
           </Button>
           <Button 
             active={currentPage === 'contact'} 
@@ -262,6 +507,9 @@ const Header: React.FC<HeaderProps> = ({
           >
             Contact
           </Button>
+          <CartButton onClick={onCartClick}>
+            🛒 Cart {cartItemCount > 0 && <CartCount>{cartItemCount}</CartCount>}
+          </CartButton>
           <Button onClick={toggleTheme}>
             {translations.header.theme} ({isDarkTheme ? '🌙' : '☀️'})
           </Button>
@@ -270,21 +518,55 @@ const Header: React.FC<HeaderProps> = ({
               {languageNames[language]} 🌐
             </LanguageButton>
             <LanguageDropdown isOpen={isLanguageOpen}>
-              {Object.entries(languageNames).map(([code, name]) => (
-                <LanguageOption
-                  key={code}
-                  isSelected={code === language}
-                  onClick={() => {
-                    setLanguage(code as LanguageCode);
-                    setIsLanguageOpen(false);
-                  }}
-                >
-                  {name}
-                  {code === language && ' ✓'}
-                </LanguageOption>
-              ))}
+              <SearchInput 
+                type="text" 
+                placeholder="Search language..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+              />
+              <LanguageList>
+                {searchQuery === '' && (
+                  <LanguageCategory>Zimbabwe Languages</LanguageCategory>
+                )}
+                {filteredZimbabweLanguages.map(([code, name]) => (
+                  <LanguageOption
+                    key={code}
+                    isSelected={code === language}
+                    onClick={() => {
+                      setLanguage(code as LanguageCode);
+                      setIsLanguageOpen(false);
+                      setSearchQuery('');
+                    }}
+                  >
+                    {name}
+                    {code === language && ' ✓'}
+                  </LanguageOption>
+                ))}
+
+                {searchQuery === '' && filteredOtherLanguages.length > 0 && (
+                  <LanguageCategory>Other Languages</LanguageCategory>
+                )}
+                {filteredOtherLanguages.map(([code, name]) => (
+                  <LanguageOption
+                    key={code}
+                    isSelected={code === language}
+                    onClick={() => {
+                      setLanguage(code as LanguageCode);
+                      setIsLanguageOpen(false);
+                      setSearchQuery('');
+                    }}
+                  >
+                    {name}
+                    {code === language && ' ✓'}
+                  </LanguageOption>
+                ))}
+              </LanguageList>
             </LanguageDropdown>
           </LanguageContainer>
+          <BookingButton onClick={() => setIsBookingModalOpen(true)}>
+            {translations.booking.buttonText}
+          </BookingButton>
         </ButtonGroup>
         <HamburgerButton onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
           {isMobileMenuOpen ? '✕' : '☰'}
@@ -317,24 +599,200 @@ const Header: React.FC<HeaderProps> = ({
             {translations.header.language} 🌐
           </MobileMenuItem>
           {isLanguageOpen && (
-            Object.entries(languageNames).map(([code, name]) => (
-              <MobileMenuItem
-                key={code}
-                isSelected={code === language}
-                onClick={() => {
-                  setLanguage(code as LanguageCode);
-                  setIsLanguageOpen(false);
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                {name}
-                {code === language && ' ✓'}
-              </MobileMenuItem>
-            ))
+            <>
+              <SearchInput 
+                type="text" 
+                placeholder="Search language..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+              />
+              {searchQuery === '' && <LanguageCategory>Zimbabwe Languages</LanguageCategory>}
+              {filteredZimbabweLanguages.map(([code, name]) => (
+                <MobileMenuItem
+                  key={code}
+                  isSelected={code === language}
+                  onClick={() => {
+                    setLanguage(code as LanguageCode);
+                    setIsLanguageOpen(false);
+                    setSearchQuery('');
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  {name}
+                  {code === language && ' ✓'}
+                </MobileMenuItem>
+              ))}
+              
+              {searchQuery === '' && <LanguageCategory>Other Languages</LanguageCategory>}
+              {filteredOtherLanguages.map(([code, name]) => (
+                <MobileMenuItem
+                  key={code}
+                  isSelected={code === language}
+                  onClick={() => {
+                    setLanguage(code as LanguageCode);
+                    setIsLanguageOpen(false);
+                    setSearchQuery('');
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  {name}
+                  {code === language && ' ✓'}
+                </MobileMenuItem>
+              ))}
+            </>
           )}
+          <MobileMenuItem onClick={() => {
+            setIsBookingModalOpen(true);
+            setIsMobileMenuOpen(false);
+          }}>
+            {translations.booking.buttonText}
+          </MobileMenuItem>
         </MobileMenu>
       </HeaderContent>
+      
+      <BookingModal 
+        isOpen={isBookingModalOpen} 
+        onClose={() => setIsBookingModalOpen(false)} 
+        translations={translations}
+      />
     </HeaderContainer>
+  );
+};
+
+const BookingModal = ({ isOpen, onClose, translations }: { 
+  isOpen: boolean; 
+  onClose: () => void;
+  translations: any;
+}) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    date: '',
+    time: '',
+    guests: '2',
+    specialRequests: ''
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would typically send the booking data to your backend
+    console.log('Booking submitted:', formData);
+    alert('Booking request submitted! We will contact you to confirm.');
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <ModalOverlay onClick={onClose}>
+      <ModalContent onClick={e => e.stopPropagation()}>
+        <CloseButton onClick={onClose}>×</CloseButton>
+        <ModalTitle>{translations.booking.title}</ModalTitle>
+        
+        <BookingForm onSubmit={handleSubmit}>
+          <FormGroup>
+            <Label htmlFor="name">{translations.booking.name}</Label>
+            <Input 
+              type="text" 
+              id="name" 
+              name="name" 
+              value={formData.name} 
+              onChange={handleChange} 
+              required 
+            />
+          </FormGroup>
+          
+          <FormGroup>
+            <Label htmlFor="email">{translations.booking.email}</Label>
+            <Input 
+              type="email" 
+              id="email" 
+              name="email" 
+              value={formData.email} 
+              onChange={handleChange} 
+              required 
+            />
+          </FormGroup>
+          
+          <FormGroup>
+            <Label htmlFor="phone">{translations.booking.phone}</Label>
+            <Input 
+              type="tel" 
+              id="phone" 
+              name="phone" 
+              value={formData.phone} 
+              onChange={handleChange} 
+              required 
+            />
+          </FormGroup>
+          
+          <FormGroup>
+            <Label htmlFor="date">{translations.booking.date}</Label>
+            <Input 
+              type="date" 
+              id="date" 
+              name="date" 
+              value={formData.date} 
+              onChange={handleChange} 
+              required 
+            />
+          </FormGroup>
+          
+          <FormGroup>
+            <Label htmlFor="time">{translations.booking.time}</Label>
+            <Input 
+              type="time" 
+              id="time" 
+              name="time" 
+              value={formData.time} 
+              onChange={handleChange} 
+              required 
+            />
+          </FormGroup>
+          
+          <FormGroup>
+            <Label htmlFor="guests">{translations.booking.guests}</Label>
+            <Select 
+              id="guests" 
+              name="guests" 
+              value={formData.guests} 
+              onChange={handleChange} 
+              required
+              aria-label={translations.booking.guests}
+              title={translations.booking.guests}
+            >
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                <option key={num} value={num}>{num}</option>
+              ))}
+            </Select>
+          </FormGroup>
+          
+          <FormGroup>
+            <Label htmlFor="specialRequests">{translations.booking.specialRequests}</Label>
+            <TextArea 
+              id="specialRequests" 
+              name="specialRequests" 
+              value={formData.specialRequests} 
+              onChange={handleChange} 
+            />
+          </FormGroup>
+          
+          <SubmitButton type="submit">
+            {translations.booking.submit}
+          </SubmitButton>
+        </BookingForm>
+      </ModalContent>
+    </ModalOverlay>
   );
 };
 
